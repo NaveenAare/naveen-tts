@@ -94,12 +94,10 @@ def new_talking():
     filepath = os.path.join(UPLOAD_FOLDER, filename)
     file.save(filepath)
 
-    # Preprocess the audio (downsample and convert to mono)
-    preprocessed_filepath = os.path.join(UPLOAD_FOLDER, f"processed_{filename}")
-    preprocess_audio(filepath, preprocessed_filepath)
+ 
 
 
-    result = model.transcribe(preprocessed_filepath, fp16=torch.cuda.is_available())
+    result = model.transcribe(filepath, fp16=torch.cuda.is_available())
     return result
 
 
@@ -131,4 +129,4 @@ async def tts():
 
 if __name__ == "__main__":
     # Run Flask app with multi-threading enabled for better concurrency
-    app.run(host="0.0.0.0", port=8000, threaded=True)
+    app.run(host="0.0.0.0", port=8888, threaded=True)
