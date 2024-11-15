@@ -65,44 +65,45 @@ def preprocess_audio(input_path, output_path):
 
 # Load the Whisper model (will download only if not cached)
 def load_model():
+    os.makedirs(MODEL_PATH, exist_ok=True)  # Ensure model cache directory exists
+
     if not os.path.exists(MODEL_PATH):
         print("Downloading Whisper model...")
-        model = whisper.load_model("base", download_root=MODEL_PATH, device="cpu")
-        print("acceeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeepted")
     else:
         print("Using cached Whisper model...")
-        model = whisper.load_model("base", download_root=MODEL_PATH, device="cpu")
+    
+    # Use "cuda" if GPU is available
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    print(f"Loading model on device: {device}")
+
+    model = whisper.load_model("base", download_root=MODEL_PATH, device=device)
     return model
 
 
-
-
-print("at ......load model")
+print("Loading Whisper model...")
 model = load_model()
 
 
-def preprocess_audio(input_path, output_path):
-    command = ['ffmpeg', '-y', '-i', input_path, '-ar', '16000', '-ac', '1', output_path]
-    subprocess.run(command, check=True)
-
 @app.route('/new_talking', methods=['POST'])
 def new_talking():
-    print("KKKKKKKKKKKKKKKKKKKKk")
+    print("Received new audio file...")
     file = request.files['file']
 
     filename = secure_filename(file.filename)
     filepath = os.path.join(UPLOAD_FOLDER, filename)
     file.save(filepath)
 
- 
+    # Preprocess the audio (convert to 16kHz mono)
+    preprocessed_path = os.path.join(UPLOAD_FOLDER, f"processed_{filename}")
+    preprocess_audio(filepath, preprocessed_path)
 
+    # Perform transcription
+    result = model.transcribe(preprocessed_path)
+    print("Transcription complete.")
 
-    result = model.transcribe(filepath, fp16=torch.cuda.is_available())
     return result
 
-
 async def process_inference(ref_audio_path, ref_text, gen_text):
-    # Use the executor to run the inference asynchronously
     loop = asyncio.get_event_loop()
     audio_buffer = await loop.run_in_executor(executor, tts_model.infer, ref_audio_path, ref_text, gen_text)
     return audio_buffer
@@ -129,4 +130,4 @@ async def tts():
 
 if __name__ == "__main__":
     # Run Flask app with multi-threading enabled for better concurrency
-    app.run(host="0.0.0.0", port=8888, threaded=True)
+    app.run(host="0.0.0.0", port=8080, threaded=True)
