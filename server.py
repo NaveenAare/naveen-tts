@@ -53,7 +53,7 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 tts_model = TTSModel(device=device)
 
 # Set up the thread pool for async processing
-executor = ThreadPoolExecutor(max_workers=2)
+executor = ThreadPoolExecutor(max_workers=4)
 
 async def process_inference(ref_audio_path, ref_text, gen_text):
     loop = asyncio.get_event_loop()
