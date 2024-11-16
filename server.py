@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, send_file
+from flask import Flask, request, jsonify, send_file, render_template
 import torch
 import io
 import soundfile as sf
@@ -32,12 +32,12 @@ DB_NAME = "voicedb"
 DB_USER = "rootvoice"
 DB_PASS = "@Apjpakir123"
 
-openai.api_key = ''
-
 import tiktoken
 
-CORS(app)
-socketio = SocketIO(app)
+CORS(app, resources={r"/*": {"origins": "http://localhost:5000"}})
+
+# Initialize SocketIO with CORS support
+socketio = SocketIO(app, cors_allowed_origins="*")
 
 @socketio.on('connect')
 def handle_connect():
@@ -126,8 +126,8 @@ def process_inference(ref_audio_path, ref_text, gen_text):
 def tts():
     data = request.get_json()
     gen_text = data.get("text", "")
-    ref_text = data.get("ref_text", "I am proud India is pacing forward in addressing climate change by hosting its first ever Formula E-Race.")
-    ref_audio = "8608517287293824917448_audio.mp3"
+    ref_text = data.get("ref_text", " Karma, if so, do you accept these injustices on and find solace in the fact that")
+    ref_audio = "sadhguru-english-speech-satguru-jesus-america-usa-viral-actor-actress-samantha-128-ytshorts.savetube.me.mp3"
 
     if not gen_text or not ref_audio:
         return jsonify({"error": "Text and reference audio are required"}), 400
@@ -218,8 +218,8 @@ def add_summary(conversation_history_api, summarry1):
     return conversation_history_api
 
 def text_to_speech_for_text_stream(gen_text, user_id, authToken, charcId):
-    ref_text = "I am proud India is pacing forward in addressing climate change by hosting its first ever Formula E-Race."
-    ref_audio = "8608517287293824917448_audio.mp3" 
+    ref_text = " Karma, if so, do you accept these injustices on and find solace in the fact that"
+    ref_audio = "sadhguru-english-speech-satguru-jesus-america-usa-viral-actor-actress-samantha-128-ytshorts.savetube.me.mp3"
 
     if not gen_text or not ref_audio:
         return jsonify({"error": "Text and reference audio are required"}), 400
@@ -401,8 +401,15 @@ def new_talking_optimized():
     
     return Response(stream_with_context(generate()), content_type='text/plain')
 
+
+@app.route("/", methods=['GET'])
+def homee():
+    return render_template('a.html')
+
+
+
 if __name__ == "__main__":
     # Run Flask app with multi-threading enabled for better concurrency
     #app.run(host="0.0.0.0", port=8080, threaded=True)
-    socketio.run(app, host='127.0.0.1', port=8080)
+    socketio.run(app, host="0.0.0.0", port=8000, debug=True)
 
